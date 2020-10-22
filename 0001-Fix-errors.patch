@@ -1,0 +1,159 @@
+From 16ce8e0118f54cc3adba605aef20ef12de296fe1 Mon Sep 17 00:00:00 2001
+From: Sebastian Karsznia <sebastian.karsznia@fujitsu.com>
+Date: Thu, 22 Oct 2020 09:32:54 +0000
+Subject: [PATCH 1/1] Fix errors
+
+---
+ elastic-fluentd-kibana/1_labelNodes.sh                 | 0
+ elastic-fluentd-kibana/2_elasticSearch-cleanup.sh      | 0
+ elastic-fluentd-kibana/2_elasticSearch.sh              | 0
+ elastic-fluentd-kibana/3_fluentd-cleanup.sh            | 0
+ elastic-fluentd-kibana/3_fluentd.sh                    | 0
+ elastic-fluentd-kibana/4_kibana.sh                     | 0
+ elastic-fluentd-kibana/efk-demo/es-statefulset.yaml    | 6 +++---
+ elastic-fluentd-kibana/efk-demo/fluentd-es-ds.yaml     | 9 ++++++---
+ elastic-fluentd-kibana/efk-demo/kibana-deployment.yaml | 2 +-
+ got-webapp/1_redis.sh                                  | 2 +-
+ got-webapp/2_got-cleanup.sh                            | 0
+ got-webapp/2_got.sh                                    | 2 +-
+ 12 files changed, 12 insertions(+), 9 deletions(-)
+ mode change 100644 => 100755 elastic-fluentd-kibana/1_labelNodes.sh
+ mode change 100644 => 100755 elastic-fluentd-kibana/2_elasticSearch-cleanup.sh
+ mode change 100644 => 100755 elastic-fluentd-kibana/2_elasticSearch.sh
+ mode change 100644 => 100755 elastic-fluentd-kibana/3_fluentd-cleanup.sh
+ mode change 100644 => 100755 elastic-fluentd-kibana/3_fluentd.sh
+ mode change 100644 => 100755 elastic-fluentd-kibana/4_kibana.sh
+ mode change 100644 => 100755 got-webapp/1_redis.sh
+ mode change 100644 => 100755 got-webapp/2_got-cleanup.sh
+ mode change 100644 => 100755 got-webapp/2_got.sh
+
+diff --git a/elastic-fluentd-kibana/1_labelNodes.sh b/elastic-fluentd-kibana/1_labelNodes.sh
+old mode 100644
+new mode 100755
+diff --git a/elastic-fluentd-kibana/2_elasticSearch-cleanup.sh b/elastic-fluentd-kibana/2_elasticSearch-cleanup.sh
+old mode 100644
+new mode 100755
+diff --git a/elastic-fluentd-kibana/2_elasticSearch.sh b/elastic-fluentd-kibana/2_elasticSearch.sh
+old mode 100644
+new mode 100755
+diff --git a/elastic-fluentd-kibana/3_fluentd-cleanup.sh b/elastic-fluentd-kibana/3_fluentd-cleanup.sh
+old mode 100644
+new mode 100755
+diff --git a/elastic-fluentd-kibana/3_fluentd.sh b/elastic-fluentd-kibana/3_fluentd.sh
+old mode 100644
+new mode 100755
+diff --git a/elastic-fluentd-kibana/4_kibana.sh b/elastic-fluentd-kibana/4_kibana.sh
+old mode 100644
+new mode 100755
+diff --git a/elastic-fluentd-kibana/efk-demo/es-statefulset.yaml b/elastic-fluentd-kibana/efk-demo/es-statefulset.yaml
+index 6d4b7b3..f0e964a 100644
+--- a/elastic-fluentd-kibana/efk-demo/es-statefulset.yaml
++++ b/elastic-fluentd-kibana/efk-demo/es-statefulset.yaml
+@@ -10,7 +10,7 @@ metadata:
+     addonmanager.kubernetes.io/mode: Reconcile
+ ---
+ kind: ClusterRole
+-apiVersion: rbac.authorization.k8s.io/v1beta1
++apiVersion: rbac.authorization.k8s.io/v1
+ metadata:
+   name: elasticsearch-logging
+   labels:
+@@ -28,7 +28,7 @@ rules:
+   - "get"
+ ---
+ kind: ClusterRoleBinding
+-apiVersion: rbac.authorization.k8s.io/v1beta1
++apiVersion: rbac.authorization.k8s.io/v1
+ metadata:
+   namespace: efk-demo
+   name: elasticsearch-logging
+@@ -47,7 +47,7 @@ roleRef:
+   apiGroup: ""
+ ---
+ # Elasticsearch deployment
+-apiVersion: apps/v1beta1
++apiVersion: apps/v1
+ kind: StatefulSet
+ metadata:
+   name: elasticsearch-logging
+diff --git a/elastic-fluentd-kibana/efk-demo/fluentd-es-ds.yaml b/elastic-fluentd-kibana/efk-demo/fluentd-es-ds.yaml
+index 624410f..c0eaa27 100644
+--- a/elastic-fluentd-kibana/efk-demo/fluentd-es-ds.yaml
++++ b/elastic-fluentd-kibana/efk-demo/fluentd-es-ds.yaml
+@@ -9,7 +9,7 @@ metadata:
+     addonmanager.kubernetes.io/mode: Reconcile
+ ---
+ kind: ClusterRole
+-apiVersion: rbac.authorization.k8s.io/v1beta1
++apiVersion: rbac.authorization.k8s.io/v1
+ metadata:
+   name: fluentd-es
+   labels:
+@@ -28,7 +28,7 @@ rules:
+   - "list"
+ ---
+ kind: ClusterRoleBinding
+-apiVersion: rbac.authorization.k8s.io/v1beta1
++apiVersion: rbac.authorization.k8s.io/v1
+ metadata:
+   name: fluentd-es
+   labels:
+@@ -45,7 +45,7 @@ roleRef:
+   name: fluentd-es
+   apiGroup: ""
+ ---
+-apiVersion: extensions/v1beta1
++apiVersion: apps/v1
+ kind: DaemonSet
+ metadata:
+   name: fluentd-es-v2.0.1
+@@ -56,6 +56,9 @@ metadata:
+     kubernetes.io/cluster-service: "true"
+     addonmanager.kubernetes.io/mode: Reconcile
+ spec:
++  selector:
++    matchLabels:
++      k8s-app: fluentd-es
+   template:
+     metadata:
+       labels:
+diff --git a/elastic-fluentd-kibana/efk-demo/kibana-deployment.yaml b/elastic-fluentd-kibana/efk-demo/kibana-deployment.yaml
+index 697ee2a..270a4ff 100644
+--- a/elastic-fluentd-kibana/efk-demo/kibana-deployment.yaml
++++ b/elastic-fluentd-kibana/efk-demo/kibana-deployment.yaml
+@@ -1,4 +1,4 @@
+-apiVersion: extensions/v1beta1
++apiVersion: apps/v1
+ kind: Deployment
+ metadata:
+   name: kibana-logging
+diff --git a/got-webapp/1_redis.sh b/got-webapp/1_redis.sh
+old mode 100644
+new mode 100755
+index 8ced4c3..cceb580
+--- a/got-webapp/1_redis.sh
++++ b/got-webapp/1_redis.sh
+@@ -3,5 +3,5 @@ kubectl create ns got-webapp
+ # Creating deployment
+ kubectl run redis --image redis --namespace got-webapp
+ # Exposing deployment as service
+-kubectl expose deployment redis --namespace got-webapp --port 6379
++kubectl expose pod redis --namespace got-webapp --port 6379 --type LoadBalancer
+
+diff --git a/got-webapp/2_got-cleanup.sh b/got-webapp/2_got-cleanup.sh
+old mode 100644
+new mode 100755
+diff --git a/got-webapp/2_got.sh b/got-webapp/2_got.sh
+old mode 100644
+new mode 100755
+index 76f4a19..d78d18c
+--- a/got-webapp/2_got.sh
++++ b/got-webapp/2_got.sh
+@@ -4,4 +4,4 @@
+ # Run the image on your kube cluster, for eg:
+ kubectl run got-webapp --image cvugrinec/got-webapp --namespace got-webapp
+ # Expose as service with public endpoint
+-kubectl expose deployment got-webapp --namespace got-webapp --port 5000 --target-port 5000 --type LoadBalancer
++kubectl expose pod got-webapp --namespace got-webapp --port 5000 --target-port 5000 --type LoadBalancer
+--
+2.7.4
